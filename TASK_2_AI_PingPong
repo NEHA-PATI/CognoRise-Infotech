@@ -1,0 +1,117 @@
+# prompt: AI ping pong using javascript
+
+%%html
+<html>
+<head>
+  <title>AI Ping Pong</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Paddle properties
+    const paddleWidth = 10;
+    const paddleHeight = 80;
+    let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
+    let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
+    const paddleSpeed = 5;
+
+    // Ball properties
+    let ballX = canvas.width / 2;
+    let ballY = canvas.height / 2;
+    let ballRadius = 5;
+    let ballSpeedX = 5;
+    let ballSpeedY = 5;
+
+    // AI properties
+    const aiReactionTime = 0.1; // Adjust this for AI difficulty
+    let aiTargetY = ballY;
+
+    // Draw functions
+    function drawPaddle(x, y, width, height) {
+      ctx.fillRect(x, y, width, height);
+    }
+
+    function drawBall(x, y, radius) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Update game state
+    function update() {
+      // Move ball
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      // Ball collision with top/bottom walls
+      if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
+        ballSpeedY = -ballSpeedY;
+      }
+
+      // Ball collision with paddles
+      if (
+        (ballX - ballRadius < paddleWidth && ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) ||
+        (ballX + ballRadius > canvas.width - paddleWidth && ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight)
+      ) {
+        ballSpeedX = -ballSpeedX;
+      }
+
+      // AI movement (right paddle)
+      if (Math.random() < aiReactionTime) {
+        aiTargetY = ballY;
+      }
+      if (rightPaddleY + paddleHeight / 2 < aiTargetY) {
+        rightPaddleY += paddleSpeed;
+      } else {
+        rightPaddleY -= paddleSpeed;
+      }
+
+      // Keep paddles within canvas bounds
+      leftPaddleY = Math.max(0, Math.min(leftPaddleY, canvas.height - paddleHeight));
+      rightPaddleY = Math.max(0, Math.min(rightPaddleY, canvas.height - paddleHeight));
+    }
+
+    // Render game
+    function render() {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw paddles
+      ctx.fillStyle = 'black';
+      drawPaddle(0, leftPaddleY, paddleWidth, paddleHeight);
+      drawPaddle(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
+
+      // Draw ball
+      ctx.fillStyle = 'red';
+      drawBall(ballX, ballY, ballRadius);
+    }
+
+    // Game loop
+    function gameLoop() {
+      update();
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Start game
+    gameLoop();
+
+    // Player controls (left paddle)
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowUp') {
+        leftPaddleY -= paddleSpeed;
+      } else if (event.key === 'ArrowDown') {
+        leftPaddleY += paddleSpeed;
+      }
+    });
+  </script>
+</body>
+</html>
